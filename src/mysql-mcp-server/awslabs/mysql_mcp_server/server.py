@@ -223,7 +223,7 @@ def main():
 
     # Connection method 2: asyncmy for RDS MySQL and RDS MariaDB
     parser.add_argument('--hostname', help='RDS MySQL Database hostname')
-    parser.add_argument('--port', type=int, default=3306, help='Database port (default: 3306)')
+    parser.add_argument('--db-port', type=int, default=3306, help='Database port (default: 3306)')
 
     parser.add_argument(
         '--secret_arn',
@@ -234,6 +234,12 @@ def main():
     parser.add_argument('--region', required=True, help='AWS region')
     parser.add_argument(
         '--readonly', required=True, help='Enforce NL to SQL to only allow readonly sql statement'
+    )
+    parser.add_argument(
+        '--transport',
+        choices=['stdio', 'streamable-http', 'sse'],
+        default='stdio',
+        help='Transport protocol: stdio (default), streamable-http(http), or sse (legacy)',
     )
     args = parser.parse_args()
 
@@ -252,7 +258,7 @@ def main():
         )
     else:
         logger.info(
-            f'MySQL/MariaDB MCP init with asyncmy: CONNECTION_TARGET:{args.hostname}, PORT:{args.port}, DATABASE:{args.database}, READONLY:{args.readonly}'
+            f'MySQL/MariaDB MCP init with asyncmy: CONNECTION_TARGET:{args.hostname}, PORT:{args.db_port}, DATABASE:{args.database}, READONLY:{args.readonly}'
         )
 
     # Create the appropriate database connection based on the provided parameters
@@ -293,15 +299,19 @@ def main():
                 region=args.region,
                 readonly=args.readonly.lower(),
                 hostname=args.hostname,
-                port=args.port,
+                port=args.db_port,
             )
     except Exception as e:
         logger.exception(f'Failed to create MySQL connection: {str(e)}')
         sys.exit(1)
 
     # Run server with appropriate transport
-    logger.info('Starting MySQL MCP server')
-    mcp.run()
+    if args.transport == 'stdio':
+        logger.info('Starting MySQL MCP server with stdio transport')
+        mcp.run()
+    else:  # sse or streamable-http
+        logger.info(f'Starting MySQL MCP server with {args.transport} transport on /mcp')
+        mcp.run(transport=args.transport, mount_path='/mcp')
 
 
 if __name__ == '__main__':
