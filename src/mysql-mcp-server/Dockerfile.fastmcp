@@ -1,0 +1,34 @@
+FROM public.ecr.aws/docker/library/python:3.13-alpine AS builder
+
+WORKDIR /app
+
+COPY pyproject.toml uv.lock requirements-fastmcp.txt ./
+COPY . /app
+
+RUN apk update && \
+    apk add --no-cache --virtual .build-deps \
+    build-base gcc musl-dev libffi-dev openssl-dev cargo && \
+    pip install --no-cache-dir -r requirements-fastmcp.txt && \
+    pip install --no-cache-dir . && \
+    apk del .build-deps
+
+FROM public.ecr.aws/docker/library/python:3.13-alpine
+
+RUN apk update && \
+    apk add --no-cache ca-certificates && \
+    update-ca-certificates && \
+    addgroup -S app && \
+    adduser -S app -G app -h /app
+
+COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=builder /usr/local/bin/awslabs.mysql-mcp-server /usr/local/bin/awslabs.mysql-mcp-server
+COPY --chown=app:app entrypoint.sh /app/entrypoint.sh
+
+WORKDIR /app
+USER app
+
+RUN chmod +x /app/entrypoint.sh
+
+EXPOSE 8000
+
+ENTRYPOINT ["/app/entrypoint.sh"]

@@ -1,20 +1,20 @@
 #!/bin/bash
 set -e
 
-COMMAND_ID="5d861856-815e-49c0-868e-f5982e20bddd"
-SECRET_ARN="${1:-arn:aws:secretsmanager:us-west-2:640168427976:secret:YOUR_SECRET_NAME}"
+COMMAND_ID="your-command-id"
+SECRET_ARN="${1:-arn:aws:secretsmanager:region:account-id:secret:YOUR_SECRET_NAME}"
 
 echo "=== 步骤 1: 等待镜像构建完成 ==="
 echo "Command ID: ${COMMAND_ID}"
 for i in {1..30}; do
-    STATUS=$(aws ssm get-command-invocation --command-id ${COMMAND_ID} --instance-id i-0bd584877eeddfab4 --region us-west-2 --query 'Status' --output text 2>/dev/null || echo "Pending")
+    STATUS=$(aws ssm get-command-invocation --command-id ${COMMAND_ID} --instance-id i-xxxxxxxxxxxxxxxxx --region us-west-2 --query 'Status' --output text 2>/dev/null || echo "Pending")
     echo "[$i/30] 构建状态: ${STATUS}"
     if [ "$STATUS" = "Success" ]; then
         echo "✅ 镜像构建成功！"
         break
     elif [ "$STATUS" = "Failed" ]; then
         echo "❌ 构建失败，查看错误："
-        aws ssm get-command-invocation --command-id ${COMMAND_ID} --instance-id i-0bd584877eeddfab4 --region us-west-2 --query 'StandardErrorContent' --output text
+        aws ssm get-command-invocation --command-id ${COMMAND_ID} --instance-id i-xxxxxxxxxxxxxxxxx --region us-west-2 --query 'StandardErrorContent' --output text
         exit 1
     fi
     sleep 10
@@ -26,7 +26,7 @@ aws ecr describe-images --repository-name rds-mysql-mcp-server --region us-west-
 
 echo ""
 echo "=== 步骤 3: 更新 K8s 配置中的 SECRET_ARN ==="
-sed -i.bak "s|arn:aws:secretsmanager:us-west-2:640168427976:secret:YOUR_SECRET_NAME|${SECRET_ARN}|g" k8s-deployment.yaml
+sed -i.bak "s|arn:aws:secretsmanager:region:account-id:secret:YOUR_SECRET_NAME|${SECRET_ARN}|g" k8s-deployment.yaml
 
 echo ""
 echo "=== 步骤 4: 部署到 Kubernetes ==="

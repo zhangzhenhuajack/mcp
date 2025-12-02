@@ -18,7 +18,7 @@ spec:
       serviceAccountName: rds-mysql-mcp-server
       containers:
       - name: rds-mysql-mcp-server
-        image: 640168427976.dkr.ecr.us-west-2.amazonaws.com/rds-mysql-mcp-server:latest
+        image: <account-id>.dkr.ecr.us-west-2.amazonaws.com/rds-mysql-mcp-server:v1.3-fastmcp
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -26,11 +26,11 @@ spec:
           protocol: TCP
         env:
         - name: HOSTNAME
-          value: "comfyui-test-user-data.c5u086uyguxn.us-west-2.rds.amazonaws.com"
+          value: "<your-rds-endpoint>.rds.amazonaws.com"
         - name: DB_PORT
           value: "3306"
         - name: SECRET_ARN
-          value: "arn:aws:secretsmanager:us-west-2:640168427976:secret:rds!db-9f010a34-522f-404a-ab8d-90d3e0d09d71-7R0gtG"
+          value: "arn:aws:secretsmanager:region:account-id:secret:your-secret"
         - name: DATABASE
           value: "new-cost-data"
         - name: AWS_REGION
@@ -63,7 +63,7 @@ metadata:
   name: rds-mysql-mcp-server
   namespace: default
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::640168427976:role/rds-mysql-mcp-server-role
+    eks.amazonaws.com/role-arn: arn:aws:iam::account-id:role/rds-mysql-mcp-server-role
 ---
 apiVersion: v1
 kind: Service

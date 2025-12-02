@@ -1,9 +1,6 @@
 #!/bin/sh
 set -e
 
-export FASTMCP_HOST=0.0.0.0
-export FASTMCP_PORT=8000
-
 if [ -n "${HOSTNAME}" ]; then
     exec awslabs.mysql-mcp-server \
         --hostname "${HOSTNAME}" \
@@ -12,7 +9,7 @@ if [ -n "${HOSTNAME}" ]; then
         --database "${DATABASE}" \
         --region "${AWS_REGION}" \
         --readonly "${READONLY:-True}" \
-        --transport "sse"
+        --transport "http"
 else
     exec awslabs.mysql-mcp-server \
         --resource_arn "${RESOURCE_ARN}" \
@@ -20,5 +17,5 @@ else
         --database "${DATABASE}" \
         --region "${AWS_REGION}" \
         --readonly "${READONLY:-True}" \
-        --transport "sse"
+        --transport "http"
 fi

@@ -25,7 +25,7 @@ from awslabs.mysql_mcp_server.mutable_sql_detector import (
 )
 from botocore.exceptions import ClientError
 from loguru import logger
-from mcp.server.fastmcp import Context, FastMCP
+from fastmcp import Context, FastMCP
 from pydantic import Field
 from typing import Annotated, Any, Dict, List, Optional
 
@@ -85,29 +85,15 @@ mcp = FastMCP(
 )
 
 
-@mcp.tool(name='run_query', description='Run a SQL query against a MySQL database')
-async def run_query(
-    sql: Annotated[str, Field(description='The SQL query to run')],
+# Internal helper function for executing queries
+async def _execute_query_internal(
+    sql: str,
     ctx: Context,
     db_connection=None,
-    query_parameters: Annotated[
-        Optional[List[Dict[str, Any]]], Field(description='Parameters for the SQL query')
-    ] = None,
-) -> list[dict]:  # type: ignore
-    """Run a SQL query against a MySQL database.
-
-    Args:
-        sql: The sql statement to run
-        ctx: MCP context for logging and state management
-        db_connection: DB connection object passed by unit test. It should be None if if called by MCP server.
-        query_parameters: Parameters for the SQL query
-
-    Returns:
-        List of dictionary that contains query response rows
-    """
-    global client_error_code_key
-    global unexpected_error_key
-    global write_query_prohibited_key
+    query_parameters: Optional[List[Dict[str, Any]]] = None,
+) -> list[dict]:
+    """Internal function to execute SQL queries."""
+    global client_error_code_key, unexpected_error_key, write_query_prohibited_key
 
     if db_connection is None:
         db_connection = DBConnectionSingleton.get().db_connection
@@ -118,42 +104,42 @@ async def run_query(
     if db_connection.readonly_query:
         matches = detect_mutating_keywords(sql)
         if (bool)(matches):
-            logger.info(
-                f'query is rejected because current setting only allows readonly query. detected keywords: {matches}, SQL query: {sql}'
-            )
-
+            logger.info(f'query rejected: readonly only. keywords: {matches}')
             await ctx.error(write_query_prohibited_key)
             return [{'error': write_query_prohibited_key}]
 
     issues = check_sql_injection_risk(sql)
     if issues:
-        logger.info(
-            f'query is rejected because it contains risky SQL pattern, SQL query: {sql}, reasons: {issues}'
-        )
-        await ctx.error(
-            str({'message': 'Query parameter contains suspicious pattern', 'details': issues})
-        )
+        logger.info(f'query rejected: risky pattern. reasons: {issues}')
+        await ctx.error(str({'message': 'Query parameter contains suspicious pattern', 'details': issues}))
         return [{'error': query_injection_risk_key}]
 
     try:
         logger.info(f'run_query: readonly:{db_connection.readonly_query}, SQL:{sql}')
-
-        # Execute the query using the abstract connection interface
         response = await db_connection.execute_query(sql, query_parameters)
-
-        logger.success('run_query successfully executed query:{}', sql)
+        logger.success('run_query successfully executed')
         return parse_execute_response(response)
     except ClientError as e:
         logger.exception(client_error_code_key)
-        await ctx.error(
-            str({'code': e.response['Error']['Code'], 'message': e.response['Error']['Message']})
-        )
+        await ctx.error(str({'code': e.response['Error']['Code'], 'message': e.response['Error']['Message']}))
         return [{'error': client_error_code_key}]
     except Exception as e:
         logger.exception(unexpected_error_key)
-        error_details = f'{type(e).__name__}: {str(e)}'
-        await ctx.error(str({'message': error_details}))
+        await ctx.error(str({'message': f'{type(e).__name__}: {str(e)}'}))
         return [{'error': unexpected_error_key}]
+
+
+@mcp.tool(name='run_query', description='Run a SQL query against a MySQL database')
+async def run_query(
+    sql: Annotated[str, Field(description='The SQL query to run')],
+    ctx: Context,
+    db_connection=None,
+    query_parameters: Annotated[
+        Optional[List[Dict[str, Any]]], Field(description='Parameters for the SQL query')
+    ] = None,
+) -> list[dict]:
+    """Run a SQL query against a MySQL database."""
+    return await _execute_query_internal(sql, ctx, db_connection, query_parameters)
 
 
 @mcp.tool(
@@ -165,16 +151,7 @@ async def get_table_schema(
     database_name: Annotated[str, Field(description='name of the database')],
     ctx: Context,
 ) -> list[dict]:
-    """Get a table's schema information given the table name.
-
-    Args:
-        table_name: name of the table
-        database_name: name of the database
-        ctx: MCP context for logging and state management
-
-    Returns:
-        List of dictionary that contains query response rows
-    """
+    """Get a table's schema information given the table name."""
     logger.info(f'get_table_schema: {table_name}')
 
     sql = """
@@ -189,24 +166,19 @@ async def get_table_schema(
         FROM
             information_schema.columns
         WHERE
-            table_schema = :database_name
-            AND table_name = :table_name
+            table_schema = %s
+            AND table_name = %s
         ORDER BY
             ORDINAL_POSITION
     """
-    db_connection = DBConnectionSingleton.get().db_connection
-
-    if isinstance(db_connection, AsyncmyPoolConnection):
-        # Convert to positional parameters for asyncmy
-        sql = sql.replace(':database_name', '%s').replace(':table_name', '%s')
-
-    # Use consistent parameter order matching SQL placeholders
+    
     params = [
         {'name': 'database_name', 'value': {'stringValue': database_name}},
         {'name': 'table_name', 'value': {'stringValue': table_name}},
     ]
-
-    return await run_query(sql=sql, ctx=ctx, query_parameters=params)
+    
+    # Call internal helper function
+    return await _execute_query_internal(sql=sql, ctx=ctx, query_parameters=params)
 
 
 def main():
@@ -237,9 +209,9 @@ def main():
     )
     parser.add_argument(
         '--transport',
-        choices=['stdio', 'streamable-http', 'sse'],
+        choices=['stdio', 'http'],
         default='stdio',
-        help='Transport protocol: stdio (default), streamable-http(http), or sse (legacy)',
+        help='Transport protocol: stdio (default) or http',
     )
     args = parser.parse_args()
 
@@ -309,9 +281,9 @@ def main():
     if args.transport == 'stdio':
         logger.info('Starting MySQL MCP server with stdio transport')
         mcp.run()
-    else:  # sse or streamable-http
-        logger.info(f'Starting MySQL MCP server with {args.transport} transport on /mcp')
-        mcp.run(transport=args.transport, mount_path='/mcp')
+    else:  # http
+        logger.info(f'Starting MySQL MCP server with HTTP transport (stateless) on 0.0.0.0:8000')
+        mcp.run(transport="http", host="0.0.0.0", port=8000, stateless_http=True)
 
 
 if __name__ == '__main__':
