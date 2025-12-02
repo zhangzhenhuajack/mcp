@@ -32,7 +32,7 @@ async def test_create_domain_name():
         'domainNameConfig': {
             'domainName': 'api.example.com',
             'description': 'Custom domain for GraphQL API',
-            'certificateArn': 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+            'certificateArn': 'arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERT_ID',
             'appsyncDomainName': 'd-abcdefghij.appsync-api.us-east-1.amazonaws.com',
             'hostedZoneId': 'Z1D633PJN98FT9',
         }
@@ -45,14 +45,14 @@ async def test_create_domain_name():
     ):
         result = await create_domain_name_operation(
             domain_name='api.example.com',
-            certificate_arn='arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+            certificate_arn='arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERT_ID',
             description='Custom domain for GraphQL API',
             tags={'Environment': 'test'},
         )
 
         mock_client.create_domain_name.assert_called_once_with(
             domainName='api.example.com',
-            certificateArn='arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+            certificateArn='arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERT_ID',
             description='Custom domain for GraphQL API',
             tags={'Environment': 'test'},
         )
@@ -66,7 +66,7 @@ async def test_create_domain_name_minimal():
     mock_response = {
         'domainNameConfig': {
             'domainName': 'api.example.com',
-            'certificateArn': 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+            'certificateArn': 'arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERT_ID',
             'appsyncDomainName': 'd-abcdefghij.appsync-api.us-east-1.amazonaws.com',
             'hostedZoneId': 'Z1D633PJN98FT9',
         }
@@ -79,12 +79,12 @@ async def test_create_domain_name_minimal():
     ):
         result = await create_domain_name_operation(
             domain_name='api.example.com',
-            certificate_arn='arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+            certificate_arn='arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERT_ID',
         )
 
         mock_client.create_domain_name.assert_called_once_with(
             domainName='api.example.com',
-            certificateArn='arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+            certificateArn='arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERT_ID',
         )
         assert result == mock_response
 
@@ -96,7 +96,7 @@ async def test_create_domain_name_with_tags_only():
     mock_response = {
         'domainNameConfig': {
             'domainName': 'api.example.com',
-            'certificateArn': 'arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+            'certificateArn': 'arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERT_ID',
             'appsyncDomainName': 'd-abcdefghij.appsync-api.us-east-1.amazonaws.com',
             'hostedZoneId': 'Z1D633PJN98FT9',
         }
@@ -109,13 +109,13 @@ async def test_create_domain_name_with_tags_only():
     ):
         result = await create_domain_name_operation(
             domain_name='api.example.com',
-            certificate_arn='arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+            certificate_arn='arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERT_ID',
             tags={'Environment': 'prod', 'Team': 'backend'},
         )
 
         mock_client.create_domain_name.assert_called_once_with(
             domainName='api.example.com',
-            certificateArn='arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+            certificateArn='arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERT_ID',
             tags={'Environment': 'prod', 'Team': 'backend'},
         )
         assert result == mock_response
@@ -134,12 +134,12 @@ async def test_create_domain_name_empty_response():
     ):
         result = await create_domain_name_operation(
             domain_name='api.example.com',
-            certificate_arn='arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+            certificate_arn='arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERT_ID',
         )
 
         mock_client.create_domain_name.assert_called_once_with(
             domainName='api.example.com',
-            certificateArn='arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012',
+            certificateArn='arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERT_ID',
         )
         assert result == {'domainNameConfig': {}}
 

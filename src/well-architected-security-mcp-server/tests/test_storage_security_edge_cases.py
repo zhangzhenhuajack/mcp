@@ -54,7 +54,7 @@ async def test_check_s3_buckets_with_kms_encryption(mock_ctx, mock_boto3_session
                 {
                     "ApplyServerSideEncryptionByDefault": {
                         "SSEAlgorithm": "aws:kms",
-                        "KMSMasterKeyID": "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+                        "KMSMasterKeyID": "arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID",
                     },
                     "BucketKeyEnabled": False,
                 }
@@ -183,7 +183,7 @@ async def test_check_ebs_volumes_fallback_to_describe_volumes(mock_ctx, mock_bot
                 {
                     "VolumeId": "vol-1234567890abcdef0",
                     "Encrypted": True,
-                    "KmsKeyId": "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+                    "KmsKeyId": "arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID",
                     "Size": 100,
                     "VolumeType": "gp3",
                     "State": "in-use",
@@ -199,7 +199,7 @@ async def test_check_ebs_volumes_fallback_to_describe_volumes(mock_ctx, mock_bot
             {
                 "VolumeId": "vol-1234567890abcdef0",
                 "Encrypted": True,
-                "KmsKeyId": "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+                "KmsKeyId": "arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID",
                 "Size": 100,
                 "VolumeType": "gp3",
                 "State": "in-use",
@@ -243,7 +243,7 @@ async def test_check_rds_instances_fallback_to_describe_db_instances(mock_ctx, m
                 {
                     "DBInstanceIdentifier": "test-db-1",
                     "StorageEncrypted": True,
-                    "KmsKeyId": "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+                    "KmsKeyId": "arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID",
                     "Engine": "mysql",
                     "DBInstanceStatus": "available",
                     "PubliclyAccessible": False,
@@ -259,7 +259,7 @@ async def test_check_rds_instances_fallback_to_describe_db_instances(mock_ctx, m
             {
                 "DBInstanceIdentifier": "test-db-1",
                 "StorageEncrypted": True,
-                "KmsKeyId": "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+                "KmsKeyId": "arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID",
                 "Engine": "mysql",
                 "DBInstanceStatus": "available",
                 "PubliclyAccessible": False,
@@ -385,7 +385,7 @@ async def test_check_efs_filesystems_fallback_to_describe_file_systems(
                 {
                     "FileSystemId": "fs-1234567890abcdef0",
                     "Encrypted": True,
-                    "KmsKeyId": "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+                    "KmsKeyId": "arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID",
                     "LifeCycleState": "available",
                     "PerformanceMode": "generalPurpose",
                 }
@@ -399,7 +399,7 @@ async def test_check_efs_filesystems_fallback_to_describe_file_systems(
             {
                 "FileSystemId": "fs-1234567890abcdef0",
                 "Encrypted": True,
-                "KmsKeyId": "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+                "KmsKeyId": "arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID",
                 "LifeCycleState": "available",
                 "PerformanceMode": "generalPurpose",
                 "FileSystemArn": "arn:aws:elasticfilesystem:us-east-1:123456789012:file-system/fs-1234567890abcdef0",

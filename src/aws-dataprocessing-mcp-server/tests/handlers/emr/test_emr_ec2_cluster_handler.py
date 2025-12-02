@@ -775,7 +775,7 @@ async def test_create_cluster_all_optional_params(handler, mock_context):
         name='TestCluster',
         release_label='emr-7.9.0',
         instances={'InstanceGroups': []},
-        log_encryption_kms_key_id='arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012',
+        log_encryption_kms_key_id='arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID',
         steps=[{'Name': 'test-step'}],
         configurations=[{'Classification': 'spark'}],
         service_role='EMR_DefaultRole',
@@ -798,7 +798,7 @@ async def test_create_cluster_all_optional_params(handler, mock_context):
     call_args = handler.emr_client.run_job_flow.call_args[1]
     assert (
         call_args['LogEncryptionKmsKeyId']
-        == 'arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012'
+        == 'arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID'
     )
     assert call_args['Steps'] == [{'Name': 'test-step'}]
     assert call_args['Configurations'] == [{'Classification': 'spark'}]

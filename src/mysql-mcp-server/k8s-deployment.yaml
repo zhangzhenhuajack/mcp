@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rds-mysql-mcp-server
+  namespace: default
+  labels:
+    app: rds-mysql-mcp-server
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: rds-mysql-mcp-server
+  template:
+    metadata:
+      labels:
+        app: rds-mysql-mcp-server
+    spec:
+      serviceAccountName: rds-mysql-mcp-server
+      containers:
+      - name: rds-mysql-mcp-server
+        image: <account-id>.dkr.ecr.us-west-2.amazonaws.com/rds-mysql-mcp-server:v1.3-fastmcp
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+          protocol: TCP
+        env:
+        - name: HOSTNAME
+          value: "<your-rds-endpoint>.rds.amazonaws.com"
+        - name: DB_PORT
+          value: "3306"
+        - name: SECRET_ARN
+          value: "arn:aws:secretsmanager:region:account-id:secret:your-secret"
+        - name: DATABASE
+          value: "new-cost-data"
+        - name: AWS_REGION
+          value: "us-west-2"
+        - name: READONLY
+          value: "True"
+        - name: FASTMCP_LOG_LEVEL
+          value: "ERROR"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          tcpSocket:
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          tcpSocket:
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rds-mysql-mcp-server
+  namespace: default
+  annotations:
+    eks.amazonaws.com/role-arn: arn:aws:iam::account-id:role/rds-mysql-mcp-server-role
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rds-mysql-mcp-server-nlb
+  namespace: default
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+spec:
+  type: LoadBalancer
+  selector:
+    app: rds-mysql-mcp-server
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8000
+    protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rds-mysql-mcp-server-internal
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: rds-mysql-mcp-server
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000
+    protocol: TCP
