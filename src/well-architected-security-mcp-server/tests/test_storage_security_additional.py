@@ -50,7 +50,7 @@ async def test_check_ebs_volumes_success(mock_ctx, mock_boto3_session):
             {
                 "VolumeId": "vol-1234567890abcdef0",
                 "Encrypted": True,
-                "KmsKeyId": "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+                "KmsKeyId": "arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID",
                 "Size": 100,
                 "VolumeType": "gp3",
                 "State": "in-use",
@@ -154,7 +154,7 @@ async def test_check_rds_instances_success(mock_ctx, mock_boto3_session):
                 {
                     "DBInstanceIdentifier": "test-db-1",
                     "StorageEncrypted": True,
-                    "KmsKeyId": "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+                    "KmsKeyId": "arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID",
                     "Engine": "mysql",
                     "DBInstanceStatus": "available",
                     "PubliclyAccessible": False,
@@ -235,7 +235,7 @@ async def test_check_dynamodb_tables_success(mock_ctx, mock_boto3_session):
                 "SSEDescription": {
                     "Status": "ENABLED",
                     "SSEType": "KMS",
-                    "KMSMasterKeyArn": "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+                    "KMSMasterKeyArn": "arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID",
                 },
                 "TableStatus": "ACTIVE",
             }
@@ -247,7 +247,7 @@ async def test_check_dynamodb_tables_success(mock_ctx, mock_boto3_session):
                 "SSEDescription": {
                     "Status": "ENABLED",
                     "SSEType": "KMS",
-                    "KMSMasterKeyArn": "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+                    "KMSMasterKeyArn": "arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID",
                 },
                 "TableStatus": "ACTIVE",
             }
@@ -337,7 +337,7 @@ async def test_check_efs_filesystems_success(mock_ctx, mock_boto3_session):
                 {
                     "FileSystemId": "fs-1234567890abcdef0",
                     "Encrypted": True,
-                    "KmsKeyId": "arn:aws:kms:us-east-1:123456789012:key/12345678-1234-1234-1234-123456789012",
+                    "KmsKeyId": "arn:aws:kms:REGION:ACCOUNT_ID:key/KEY_ID",
                     "LifeCycleState": "available",
                     "PerformanceMode": "generalPurpose",
                 }

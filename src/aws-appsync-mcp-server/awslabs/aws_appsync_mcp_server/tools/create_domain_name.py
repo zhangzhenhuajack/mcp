@@ -79,7 +79,7 @@ def register_create_domain_name_tool(mcp):
                 "domainNameConfig": {
                     "domainName": "api.example.com",
                     "description": "Custom domain for GraphQL API",
-                    "certificateArn": "arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012",
+                    "certificateArn": "arn:aws:acm:REGION:ACCOUNT_ID:certificate/CERT_ID",
                     "appsyncDomainName": "d-abcdefghij.appsync-api.us-east-1.amazonaws.com",
                     "hostedZoneId": "Z1D633PJN98FT9"
                 }
